@@ -11,11 +11,11 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace IdentityJwtSample.Services
-{   
+{
     /// <summary>
     /// 用户服务
     /// </summary>
-    public class UserService: IUserService
+    public class UserService : IUserService
     {
         /*
             这里不使用数据库对用户信息进行持久化，直接将数据存到内存中。真实场景即实现数据表的增删改查即可。
@@ -111,37 +111,39 @@ namespace IdentityJwtSample.Services
                 _users.Remove(user);
             }
         }
-         
 
+        /// <summary>
+        /// 验证身份
+        /// </summary>
+        /// <param name="username"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
         public User Authenticate(string username, string password)
         {
             var user = _users.SingleOrDefault(x => x.Username == username && x.Password == password);
 
-            // return null if user not found
             if (user == null)
                 return null;
 
-            // authentication successful so generate jwt token
+            // JwtSecurityTokenHandler可以创建Token
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
+                    //添加申明，申明可以自定义，可以无限扩展，对于后续的身份验证通过后的授权特别有用...
                     new Claim(ClaimTypes.Name, user.Id.ToString())
                 }),
-                Expires = DateTime.UtcNow.AddDays(7),
+                Expires = DateTime.UtcNow.AddDays(7), //过期时间这里写死为7天
+                //根据配置文件的私钥值设置Token
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             user.Token = tokenHandler.WriteToken(token);
-
-            // remove password before returning
-            user.Password = null;
-
             return user;
         }
 
-         
+
     }
 }
