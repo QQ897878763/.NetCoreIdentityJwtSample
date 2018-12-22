@@ -145,5 +145,37 @@ namespace IdentityJwtSample.Services
         }
 
 
+        public User NewAuthenticate(string username, string password)
+        {
+            User user = _users.SingleOrDefault(x => x.Username == username && x.Password == password);   
+            if (user == null)
+                return null;
+            //校验密码
+            if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
+                return null;
+            return user;
+        }
+ 
+
+        private static bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
+        {
+
+            if (string.IsNullOrWhiteSpace(password))
+                throw new ArgumentException("密码为空");
+
+            if (storedHash.Length != 64) throw new ArgumentException("Invalid length of password hash (64 bytes expected).", "passwordHash");
+
+            if (storedSalt.Length != 128) throw new ArgumentException("Invalid length of password salt (128 bytes expected).", "passwordHash");
+
+            using (var hmac = new System.Security.Cryptography.HMACSHA512(storedSalt))
+            {
+                var computedHash = hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+                for (int i = 0; i < computedHash.Length; i++)
+                {
+                    if (computedHash[i] != storedHash[i]) return false;
+                }
+            }
+            return true;
+        }
     }
 }

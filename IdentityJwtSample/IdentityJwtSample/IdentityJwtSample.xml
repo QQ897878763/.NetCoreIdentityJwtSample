@@ -46,5 +46,70 @@
             <param name="Id"></param>
             <returns></returns>
         </member>
+        <member name="M:IdentityJwtSample.Helpers.AutofacConfig.RegisterService(System.Collections.Generic.List{System.Reflection.Assembly},Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            注册服务
+            </summary>
+            <param name="builder"></param>
+            <param name="assemblieLst"></param>
+        </member>
+        <member name="T:IdentityJwtSample.Helpers.ContainerManager">
+            <summary>
+            容器管理器
+            </summary>
+        </member>
+        <member name="P:IdentityJwtSample.Helpers.ContainerManager.Container">
+            <summary>
+            容器
+            </summary>
+        </member>
+        <member name="M:IdentityJwtSample.Helpers.ContainerManager.Resolve``1(System.Collections.Generic.IEnumerable{Autofac.Core.Parameter})">
+            <summary>
+            获取实例
+            </summary>
+            <typeparam name="T"></typeparam>
+            <param name="parameters"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IdentityJwtSample.Helpers.ContainerManager.ResolveNamed``1(System.String)">
+            <summary>
+            根据接口的实现类名称，实例化对象
+            </summary>
+            <typeparam name="T">接口名称</typeparam>
+            <param name="name">接口对应的实现类名称</param>
+            <returns>实例化接口实现类的对象</returns>
+        </member>
+        <member name="T:IdentityJwtSample.Services.UserService">
+            <summary>
+            用户服务
+            </summary>
+        </member>
+        <member name="M:IdentityJwtSample.Services.UserService.Authenticate(System.String,System.String)">
+            <summary>
+            验证身份
+            </summary>
+            <param name="username"></param>
+            <param name="password"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IdentityJwtSample.Startup.RegisterIOC(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            注册IOC服务 
+            使用Autofac替换默认依赖注入组件
+            </summary>
+            <param name="services"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IdentityJwtSample.Startup.AddAutoMapper">
+            <summary>
+            初始化AutoMapper
+            </summary>
+        </member>
+        <member name="M:IdentityJwtSample.Startup.AddAuthentication(Microsoft.Extensions.DependencyInjection.IServiceCollection)">
+            <summary>
+            新增身份验证
+            </summary>
+            <param name="services"></param>
+        </member>
     </members>
 </doc>
