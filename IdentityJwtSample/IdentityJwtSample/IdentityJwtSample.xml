@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>IdentityJwtSample</name>
+    </assembly>
+    <members>
+        <member name="M:IdentityJwtSample.Controllers.UsersController.Authenticate(IdentityJwtSample.Dto.UserDto)">
+            <summary>
+            获取授权
+            </summary>
+            <param name="userDto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IdentityJwtSample.Controllers.UsersController.Register(IdentityJwtSample.Dto.UserDto)">
+            <summary>
+            注册
+            </summary>
+            <param name="userDto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IdentityJwtSample.Controllers.UsersController.GetAll">
+            <summary>
+            获取所有用户信息
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:IdentityJwtSample.Controllers.UsersController.GetById(System.Int32)">
+            <summary>
+            根据ID获取制定用户
+            </summary>
+            <param name="id"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IdentityJwtSample.Controllers.UsersController.Update(System.Int32,IdentityJwtSample.Dto.UserDto)">
+            <summary>
+            更新用户信息
+            </summary>
+            <param name="id"></param>
+            <param name="userDto"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IdentityJwtSample.Controllers.UsersController.Delete(System.Int32)">
+            <summary>
+            删除用户信息
+            </summary>
+            <param name="Id"></param>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
