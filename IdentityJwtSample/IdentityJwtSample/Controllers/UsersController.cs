@@ -41,7 +41,7 @@ namespace IdentityJwtSample.Controllers
         [HttpPost("Authenticate")]
         public IActionResult Authenticate([FromBody]UserDto userDto)
         {
-            BaseApiResult<User> output = new BaseApiResult<User>();
+            BaseApiResult<TokenDto> output = new BaseApiResult<TokenDto>();
             try
             {
                 var user = _userService.Authenticate(userDto.Username, userDto.Password);

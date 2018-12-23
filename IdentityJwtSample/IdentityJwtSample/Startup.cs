@@ -116,18 +116,24 @@ namespace IdentityJwtSample
                         //var userService = setviceProvider.GetService<IUserService>();
                         IUserService userService = ContainerManager.Container.Resolve<IUserService>();
                         var userId = int.Parse(context.Principal.Identity.Name);
+                        /*在生产环境里其实建议使用Redis或其他缓存服务中取(当然在获取授权时需要将与之对应的验证信息存入缓存)，减轻数据库压力
+                        同时生产环境建议添加一个API提供给用户主动撤销Token，撤销的Token也存入缓存,这种Token称为黑名单，
+                        黑名单仅用于使尚未过期的Token
+                        */
                         var user = userService.GetById(userId);
                         if (user == null)//校验失败
                         {
                             context.Fail("Unauthorized");
                         }
                         return Task.CompletedTask;
-                    }
+                    },
+                    
                 };
                 //获取权限是否需要HTTPS
                 x.RequireHttpsMetadata = false;
                 //在成功的授权之后令牌是否应该存储在Microsoft.AspNetCore.Http.Authentication.AuthenticationProperties中
                 x.SaveToken = true;
+                
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
                     //是否验证秘钥

@@ -14,6 +14,8 @@ namespace IdentityJwtSample.Helpers
         {
             CreateMap<User, UserDto>();
             CreateMap<UserDto, User>();
+            CreateMap<TokenDto, User>();
+            CreateMap<User, TokenDto>();
         }
     }
 }

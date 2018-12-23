@@ -1,4 +1,6 @@
-﻿using IdentityJwtSample.Entities;
+﻿using AutoMapper;
+using IdentityJwtSample.Dto;
+using IdentityJwtSample.Entities;
 using IdentityJwtSample.Helpers;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -24,7 +26,7 @@ namespace IdentityJwtSample.Services
 
         private List<User> _users = new List<User>
         {
-            new User { Id = 1,  Username = "test", Password = "test" }
+            new User { Id = 1,  Username = "test", Password = "test" , RefRefreshToken="2F5B90EA-243B-48FB-8172-4F19A06EDD69"}
         };
 
         public UserService(IOptions<AppSettings> appSettings)
@@ -118,7 +120,7 @@ namespace IdentityJwtSample.Services
         /// <param name="username"></param>
         /// <param name="password"></param>
         /// <returns></returns>
-        public User Authenticate(string username, string password)
+        public TokenDto Authenticate(string username, string password)
         {
             var user = _users.SingleOrDefault(x => x.Username == username && x.Password == password);
 
@@ -133,29 +135,60 @@ namespace IdentityJwtSample.Services
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     //添加申明，申明可以自定义，可以无限扩展，对于后续的身份验证通过后的授权特别有用...
-                    new Claim(ClaimTypes.Name, user.Id.ToString())
+                    new Claim(ClaimTypes.Name, user.Id.ToString()),
+
                 }),
                 Expires = DateTime.UtcNow.AddDays(7), //过期时间这里写死为7天
+                IssuedAt = DateTime.Now, //Token发布时间
+                Audience = "AuthTest", //接收令牌的受众
                 //根据配置文件的私钥值设置Token
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
             var token = tokenHandler.CreateToken(tokenDescriptor);
             user.Token = tokenHandler.WriteToken(token);
-            return user;
+            TokenDto output = Mapper.Map<TokenDto>(user);
+            return output;
         }
 
 
-        public User NewAuthenticate(string username, string password)
+        /// <summary>
+        /// 刷新令牌
+        /// 必须在当前Token有效期内刷新，可以由前端主动发起刷新请求，
+        /// 也可以在后端每次接口验证时候根据Token的过期时间与当前时间判断，如果时间相近到一个最小值则主动刷新Token。这种方式
+        /// 不好的地方在于对每个请求的响应值里都必须添加Token和RefRefreshToken(因为后台刷新后前端需要保存，不然下次请求带的Token后端会验证失败) 
+        /// 推荐的做法是服务端新增一个RefRefreshTokenExpires(刷新Token有效期)给前端，目的是在前端在请求返回401后验证当前时间是否小于
+        /// RefRefreshTokenExpires(刷新Token有效期)，如果小于则调用刷新Token这个API获取到服务端颁发的新Token(用户无感知方式授权)，
+        /// 否则让用户重新登录(用户有感知方式授权);
+        /// </summary>
+        /// <param name="oldTokenDto"></param>
+        /// <returns></returns>
+        public TokenDto RefreshToken(TokenDto oldTokenDto)
         {
-            User user = _users.SingleOrDefault(x => x.Username == username && x.Password == password);   
+            TokenDto output = new TokenDto();
+            //如果有刷新Token值对应的用户则刷新Token以及RefRefreshToken
+            var user = _users.FirstOrDefault(p => p.RefRefreshToken == oldTokenDto.RefRefreshToken);
+            if (user != null)
+            {
+
+            }
+
+            return output;
+        }
+
+
+
+        public TokenDto NewAuthenticate(string username, string password)
+        {
+            User user = _users.SingleOrDefault(x => x.Username == username && x.Password == password);
             if (user == null)
                 return null;
             //校验密码
             if (!VerifyPasswordHash(password, user.PasswordHash, user.PasswordSalt))
                 return null;
-            return user;
+            TokenDto output = Mapper.Map<TokenDto>(user);
+            return output;
         }
- 
+
 
         private static bool VerifyPasswordHash(string password, byte[] storedHash, byte[] storedSalt)
         {
