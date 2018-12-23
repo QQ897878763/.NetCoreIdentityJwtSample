@@ -107,7 +107,9 @@ namespace IdentityJwtSample
             {
                 x.Events = new JwtBearerEvents
                 {
-                    //需注意的是如果用户的Token输入错误是不会进入到Validated事件中！ 
+                    /*需注意的因为在TokenValidationParameters中设置了ValidateIssuerSigningKey=true
+                     * 所以微软会自动帮我们进行验签! OnTokenValidated事件一定是在验签通过后才会进入，
+                     * 我们通常在这里来验证颗粒度更细化的信息. */
                     OnTokenValidated = context =>
                     {
                         //这里用微软默认的DI容器居然每次都是重新实例化了一次IUserService,明明我注入时候申明了服务生命周期为单例...

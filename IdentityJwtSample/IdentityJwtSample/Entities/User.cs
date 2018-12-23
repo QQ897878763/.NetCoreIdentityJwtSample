@@ -19,6 +19,12 @@ namespace IdentityJwtSample.Entities
         /// </summary>
         public string RefRefreshToken { get; set; }
 
+        /// <summary>
+        /// 刷新Token有效期
+        /// 使用Token访问API提示401后判断该值是否大于当前时间，如果大于则表示可以调用刷新Token API
+        /// </summary>
+        public DateTime RefRefreshTokenExpires { get; set; }
+
         public byte[] PasswordHash { get; set; }
         public byte[] PasswordSalt { get; set; }
     }
