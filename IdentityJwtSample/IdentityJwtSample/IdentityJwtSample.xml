@@ -4,6 +4,13 @@
         <name>IdentityJwtSample</name>
     </assembly>
     <members>
+        <member name="M:IdentityJwtSample.Controllers.UsersController.Register(IdentityJwtSample.Dto.UserDto)">
+            <summary>
+            注册
+            </summary>
+            <param name="userDto"></param>
+            <returns></returns>
+        </member>
         <member name="M:IdentityJwtSample.Controllers.UsersController.Authenticate(IdentityJwtSample.Dto.UserDto)">
             <summary>
             获取授权
@@ -11,11 +18,11 @@
             <param name="userDto"></param>
             <returns></returns>
         </member>
-        <member name="M:IdentityJwtSample.Controllers.UsersController.Register(IdentityJwtSample.Dto.UserDto)">
+        <member name="M:IdentityJwtSample.Controllers.UsersController.RefreshToken(IdentityJwtSample.Dto.TokenDto)">
             <summary>
-            注册
+            刷新令牌
             </summary>
-            <param name="userDto"></param>
+            <param name="oldTokenDto"></param>
             <returns></returns>
         </member>
         <member name="M:IdentityJwtSample.Controllers.UsersController.GetAll">
@@ -45,6 +52,40 @@
             </summary>
             <param name="Id"></param>
             <returns></returns>
+        </member>
+        <member name="T:IdentityJwtSample.Dto.TokenDto">
+            <summary>
+            Token
+            </summary>
+        </member>
+        <member name="P:IdentityJwtSample.Dto.TokenDto.RefRefreshToken">
+            <summary>
+            刷新Token
+            用于刷新Token用
+            </summary>
+        </member>
+        <member name="P:IdentityJwtSample.Dto.TokenDto.RefRefreshTokenExpires">
+            <summary>
+            刷新Token有效期
+            使用Token访问API提示401后判断该值是否大于当前时间，如果大于则表示可以调用刷新Token API
+            </summary>
+        </member>
+        <member name="P:IdentityJwtSample.Dto.TokenDto.Token">
+            <summary>
+            Authorization Token值
+            </summary>
+        </member>
+        <member name="P:IdentityJwtSample.Entities.User.RefRefreshToken">
+            <summary>
+            刷新Token
+            用于刷新Token用
+            </summary>
+        </member>
+        <member name="P:IdentityJwtSample.Entities.User.RefRefreshTokenExpires">
+            <summary>
+            刷新Token有效期
+            使用Token访问API提示401后判断该值是否大于当前时间，如果大于则表示可以调用刷新Token API
+            </summary>
         </member>
         <member name="M:IdentityJwtSample.Helpers.AutofacConfig.RegisterService(System.Collections.Generic.List{System.Reflection.Assembly},Microsoft.Extensions.DependencyInjection.IServiceCollection)">
             <summary>
@@ -90,6 +131,19 @@
             </summary>
             <param name="username"></param>
             <param name="password"></param>
+            <returns></returns>
+        </member>
+        <member name="M:IdentityJwtSample.Services.UserService.RefreshToken(IdentityJwtSample.Dto.TokenDto)">
+            <summary>
+            刷新令牌
+            必须在当前Token有效期内刷新，可以由前端主动发起刷新请求，
+            也可以在后端每次接口验证时候根据Token的过期时间与当前时间判断，如果时间相近到一个最小值则主动刷新Token。这种方式
+            不好的地方在于对每个请求的响应值里都必须添加Token和RefRefreshToken(因为后台刷新后前端需要保存，不然下次请求带的Token后端会验证失败) 
+            推荐的做法是服务端新增一个RefRefreshTokenExpires(刷新Token有效期)给前端，目的是在前端在请求返回401后验证当前时间是否小于
+            RefRefreshTokenExpires(刷新Token有效期)，如果小于则调用刷新Token这个API获取到服务端颁发的新Token(用户无感知方式授权)，
+            否则让用户重新登录(用户有感知方式授权);
+            </summary>
+            <param name="oldTokenDto"></param>
             <returns></returns>
         </member>
         <member name="M:IdentityJwtSample.Startup.RegisterIOC(Microsoft.Extensions.DependencyInjection.IServiceCollection)">

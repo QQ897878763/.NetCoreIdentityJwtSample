@@ -9,6 +9,7 @@ namespace IdentityJwtSample.Services
 {
     public interface IUserService : IDependency
     {
+        TokenDto RefreshToken(TokenDto oldTokenDto);
         TokenDto NewAuthenticate(string username, string password);
         TokenDto Authenticate(string username, string password);
         IEnumerable<User> GetAll();

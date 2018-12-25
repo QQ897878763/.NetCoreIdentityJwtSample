@@ -123,7 +123,6 @@ namespace IdentityJwtSample.Services
         public TokenDto Authenticate(string username, string password)
         {
             var user = _users.SingleOrDefault(x => x.Username == username && x.Password == password);
-
             if (user == null)
                 return null;
 
@@ -136,18 +135,18 @@ namespace IdentityJwtSample.Services
             // JwtSecurityTokenHandler可以创建Token
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-            DateTime tokenExpires = DateTime.UtcNow.AddMinutes(7);
+            DateTime tokenExpires = DateTime.Now.AddMinutes(3); //过期时间这里写死
             DateTime refRefreshTokenExpires = tokenExpires.AddMinutes(-1);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
-
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     //添加申明，申明可以自定义，可以无限扩展，对于后续的身份验证通过后的授权特别有用...
                     new Claim(ClaimTypes.Name, user.Id.ToString()),
-                    new Claim("RefRefreshTokenExpires",refRefreshTokenExpires.ToString())
+                    new Claim("refRefreshTokenExpires",refRefreshTokenExpires.ToString()),
+                    new Claim("tokenExpires",tokenExpires.ToString())
                 }),
-                Expires = DateTime.UtcNow.AddDays(7), //过期时间这里写死为7天
+                Expires = tokenExpires,
                 IssuedAt = DateTime.Now, //Token发布时间
                 Audience = "AuthTest", //接收令牌的受众
                 //根据配置文件的私钥值设置Token
@@ -157,9 +156,16 @@ namespace IdentityJwtSample.Services
             user.Token = tokenHandler.WriteToken(token);
             TokenDto output = Mapper.Map<TokenDto>(user);
             output.RefRefreshToken = Guid.NewGuid().ToString();
-            output.RefRefreshTokenExpires = refRefreshTokenExpires;
+            output.RefRefreshTokenExpires = refRefreshTokenExpires.ToString("yyyy-MM-dd HH:mm:ss");
             output.Token = user.Token;
+            UserRefreshTokenData(user, output);
             return output;
+        }
+
+        private void UserRefreshTokenData(User user, TokenDto tokenDto)
+        {          
+            user.RefRefreshToken = tokenDto.RefRefreshToken;
+            user.RefRefreshTokenExpires = Convert.ToDateTime(tokenDto.RefRefreshTokenExpires);
         }
 
         /// <summary>
@@ -178,12 +184,11 @@ namespace IdentityJwtSample.Services
             TokenDto output = new TokenDto();
             //如果有刷新Token值对应的用户则刷新Token以及RefRefreshToken
             var user = _users.FirstOrDefault(p => p.RefRefreshToken == oldTokenDto.RefRefreshToken
-                                            && oldTokenDto.RefRefreshTokenExpires > DateTime.Now);
+                                            && Convert.ToDateTime(oldTokenDto.RefRefreshTokenExpires) > DateTime.Now);
             if (user != null)
             {
                 output = CreateToken(user);
             }
-
             return output;
         }
 

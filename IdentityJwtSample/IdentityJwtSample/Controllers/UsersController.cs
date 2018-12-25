@@ -32,45 +32,6 @@ namespace IdentityJwtSample.Controllers
             _appSettings = appSettings.Value;
         }
 
-        /// <summary>
-        /// 获取授权
-        /// </summary>
-        /// <param name="userDto"></param>
-        /// <returns></returns>
-        [AllowAnonymous]
-        [HttpPost("Authenticate")]
-        public IActionResult Authenticate([FromBody]UserDto userDto)
-        {
-            BaseApiResult<TokenDto> output = new BaseApiResult<TokenDto>();
-            try
-            {
-                var user = _userService.Authenticate(userDto.Username, userDto.Password);
-                if (user == null)
-                    throw new Exception($"未找到名称为[{userDto.Username}]的用户信息");
-
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-                var tokenDescriptor = new SecurityTokenDescriptor
-                {
-                    Subject = new ClaimsIdentity(new Claim[]
-                    {
-                    new Claim(ClaimTypes.Name, user.Id.ToString())
-                    }),
-                    Expires = DateTime.UtcNow.AddDays(7),
-                    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-                };
-                var token = tokenHandler.CreateToken(tokenDescriptor);
-                var tokenString = tokenHandler.WriteToken(token);
-                output.IsSucess = true;
-                output.Data = user;
-                output.Message = "获取授权成功!";
-            }
-            catch (Exception ex)
-            {
-                output.Message = ex.Message;
-            }
-            return new JsonResult(output);
-        }
 
         /// <summary>
         /// 注册
@@ -92,6 +53,57 @@ namespace IdentityJwtSample.Controllers
             catch (Exception ex)
             {
                 output.Message = $"注册失败!原因:{ex.Message}";
+            }
+            return new JsonResult(output);
+        }
+
+        /// <summary>
+        /// 获取授权
+        /// </summary>
+        /// <param name="userDto"></param>
+        /// <returns></returns>
+        [AllowAnonymous]
+        [HttpPost("Authenticate")]
+        public IActionResult Authenticate([FromBody]UserDto userDto)
+        {
+            BaseApiResult<TokenDto> output = new BaseApiResult<TokenDto>();
+            try
+            {
+                TokenDto tokenData = _userService.Authenticate(userDto.Username, userDto.Password);
+ 
+                output.IsSucess = true;
+                output.Data = tokenData ?? throw new Exception($"未找到名称为[{userDto.Username}]的用户信息");
+                output.Message = "获取授权成功!";
+            }
+            catch (Exception ex)
+            {
+                output.Message = ex.Message;
+            }
+            return new JsonResult(output);
+        }
+
+        /// <summary>
+        /// 刷新令牌
+        /// </summary>
+        /// <param name="oldTokenDto"></param>
+        /// <returns></returns>
+        [Authorize]
+        [HttpPost("Token")]
+        public IActionResult RefreshToken([FromBody]TokenDto oldTokenDto)
+        {
+            BaseApiResult<TokenDto> output = new BaseApiResult<TokenDto>();
+            try
+            {
+                output.Data = _userService.RefreshToken(oldTokenDto);
+                if (output.Data != null)
+                    output.IsSucess = true;
+                else {
+                    output.Message = "刷新Token失败!清检查是否已过刷新时间!";
+                }
+            }
+            catch (Exception ex)
+            {
+                output.Message = ex.Message;
             }
             return new JsonResult(output);
         }
