@@ -135,7 +135,7 @@ namespace IdentityJwtSample.Services
             // JwtSecurityTokenHandler可以创建Token
             var tokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(_appSettings.Secret);
-            DateTime tokenExpires = DateTime.Now.AddMinutes(3); //过期时间这里写死
+            DateTime tokenExpires = DateTime.Now.AddMinutes(30); //过期时间这里写死
             DateTime refRefreshTokenExpires = tokenExpires.AddMinutes(-1);
             var tokenDescriptor = new SecurityTokenDescriptor
             {

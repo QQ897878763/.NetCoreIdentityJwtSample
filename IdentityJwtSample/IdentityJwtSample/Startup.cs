@@ -8,11 +8,13 @@ using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using AutoMapper;
+using CacheManager.Core;
 using IdentityJwtSample.Helpers;
 using IdentityJwtSample.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,13 +24,23 @@ using Microsoft.Extensions.PlatformAbstractions;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Swagger;
 
+
+
 namespace IdentityJwtSample
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
+        //IConfiguration configuration, 
+        public Startup(IHostingEnvironment env)
+        { 
+            var builder = new Microsoft.Extensions.Configuration.ConfigurationBuilder().SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                // adding cache.json which contains cachemanager configuration(s)
+                .AddJsonFile("cache.json", optional: false)
+                .AddEnvironmentVariables();
+
+            this.Configuration = builder.Build();
         }
 
         public IConfiguration Configuration { get; }
@@ -40,6 +52,19 @@ namespace IdentityJwtSample
             //AddAutoMapper(); //AutoMapper直接在DI初始化时候一并与服务一起注入
             AddAuthentication(services);
             AddSwagger(services);
+
+            //CacheManager.Microsoft.Extensions.Configuration
+            //services.AddCacheManagerConfiguration(Configuration, cfg => cfg.WithLogging(typeof(ILoggerFactory)));
+
+            //// uses a refined configurastion (this will not log, as we added the MS Logger only to the configuration above
+            //services.AddCacheManager<int>(Configuration, configure: builder => builder.WithJsonSerializer());
+
+            //services.AddCacheManager<DateTime>(inline => inline.WithMicrosoftMemoryCacheHandle());
+
+            //services.AddCacheManager();
+
+            services.AddMemoryCache();
+            services.AddSingleton<MyMemoryCache>();
             return RegisterIOC(services);
         }
 
@@ -109,7 +134,7 @@ namespace IdentityJwtSample
             }).AddJwtBearer(x =>
             {
                 x.Events = new JwtBearerEvents
-                {                   
+                {
                     OnTokenValidated = context =>
                     {
                         //这里用微软默认的DI容器居然每次都是重新实例化了一次IUserService,明明我注入时候申明了服务生命周期为单例...
@@ -127,15 +152,16 @@ namespace IdentityJwtSample
                         {
                             context.Fail("Unauthorized");
                         }
+
                         return Task.CompletedTask;
                     },
-                    
+
                 };
                 //获取权限是否需要HTTPS
                 x.RequireHttpsMetadata = false;
                 //在成功的授权之后令牌是否应该存储在Microsoft.AspNetCore.Http.Authentication.AuthenticationProperties中
                 x.SaveToken = true;
-                
+
                 x.TokenValidationParameters = new TokenValidationParameters
                 {
                     //是否验证秘钥

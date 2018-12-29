@@ -15,6 +15,7 @@ using System.Text;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using IdentityJwtSample.Entities;
+using CacheManager.Core;
 
 namespace IdentityJwtSample.Controllers
 {
@@ -25,6 +26,7 @@ namespace IdentityJwtSample.Controllers
     {
         private readonly AppSettings _appSettings;
         private readonly IUserService _userService;
+
 
         public UsersController(IUserService userService, IOptions<AppSettings> appSettings)
         {
@@ -70,7 +72,7 @@ namespace IdentityJwtSample.Controllers
             try
             {
                 TokenDto tokenData = _userService.Authenticate(userDto.Username, userDto.Password);
- 
+
                 output.IsSucess = true;
                 output.Data = tokenData ?? throw new Exception($"未找到名称为[{userDto.Username}]的用户信息");
                 output.Message = "获取授权成功!";
@@ -97,7 +99,8 @@ namespace IdentityJwtSample.Controllers
                 output.Data = _userService.RefreshToken(oldTokenDto);
                 if (output.Data != null)
                     output.IsSucess = true;
-                else {
+                else
+                {
                     output.Message = "刷新Token失败!清检查是否已过刷新时间!";
                 }
             }
@@ -118,6 +121,8 @@ namespace IdentityJwtSample.Controllers
             BaseApiResult<IList<UserDto>> output = new BaseApiResult<IList<UserDto>>();
             try
             {
+                var user = HttpContext.User;
+
                 var users = _userService.GetAll();
                 var userDtos = Mapper.Map<IList<UserDto>>(users);
                 output.Data = userDtos;
