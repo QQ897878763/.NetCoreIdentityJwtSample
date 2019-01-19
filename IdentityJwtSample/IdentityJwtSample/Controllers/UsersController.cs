@@ -16,6 +16,7 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using IdentityJwtSample.Entities;
 using CacheManager.Core;
+using IdentityJwtSample.Filters;
 
 namespace IdentityJwtSample.Controllers
 {
@@ -89,7 +90,7 @@ namespace IdentityJwtSample.Controllers
         /// </summary>
         /// <param name="oldTokenDto"></param>
         /// <returns></returns>
-        [Authorize]
+        [PermissionFilter("Create")]
         [HttpPost("Token")]
         public IActionResult RefreshToken([FromBody]TokenDto oldTokenDto)
         {
@@ -116,6 +117,7 @@ namespace IdentityJwtSample.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet]
+        [PermissionFilter("Select")]
         public IActionResult GetAll()
         {
             BaseApiResult<IList<UserDto>> output = new BaseApiResult<IList<UserDto>>();
@@ -141,6 +143,7 @@ namespace IdentityJwtSample.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{Id}")]
+        [PermissionFilter("chaxun")]  //PermissionAuthorizationHandler 的permissions里没有[chaxun] 所以该Action会认认证失败
         public IActionResult GetById(int id)
         {
             BaseApiResult<UserDto> output = new BaseApiResult<UserDto>();
